@@ -1,0 +1,264 @@
+package com.example.ledblinky;
+
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
+import android.media.ExifInterface;
+import android.net.wifi.WifiConfiguration;
+import android.net.wifi.WifiManager;
+import android.os.Bundle;
+import android.os.Handler;
+import android.provider.Settings;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
+
+import com.example.ledblinky.Network.ApiResponseListener;
+import com.example.ledblinky.Network.VolleyRemoteApiClient;
+import com.google.android.things.pio.Gpio;
+import com.google.android.things.pio.PeripheralManager;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+
+/**
+ * Skeleton of an Android Things activity.
+ * <p>
+ * Android Things peripheral APIs are accessible through the class
+ * PeripheralManagerService. For example, the snippet below will open a GPIO pin and
+ * set it to HIGH:
+ * <p>
+ * <pre>{@code
+ * PeripheralManagerService service = new PeripheralManagerService();
+ * mLedGpio = service.openGpio("BCM6");
+ * mLedGpio.setDirection(Gpio.DIRECTION_OUT_INITIALLY_LOW);
+ * mLedGpio.setValue(true);
+ * }</pre>
+ * <p>
+ * For more complex peripherals, look for an existing user-space driver, or implement one if none
+ * is available.
+ *
+ * @see <a href="https://github.com/androidthings/contrib-drivers#readme">https://github.com/androidthings/contrib-drivers#readme</a>
+ */
+public class MainActivity extends Activity {
+
+    private static final String TAG = "BlinkActivity";
+    private static final int INTERVAL_BETWEEN_BLINKS_MS = 1000;
+    private static final String LED_PIN_NAME = "BCM26"; // GPIO port wired to the LED
+
+    private Handler mHandler = new Handler();
+
+    private Gpio mLedGpio;
+    Timer timer;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        final TextView txtConsole = findViewById(R.id.txtConsole);
+        final Button btnSetting = findViewById(R.id.btnSetting);
+        final EditText txtTemperature = findViewById(R.id.txtTemperature);
+        final EditText txtPressure = findViewById(R.id.txtPressure);
+        final Context context= this;
+        getAllApplications(this,false);
+        PeripheralManager manager = PeripheralManager.getInstance();
+        try {
+            mLedGpio = manager.openGpio(LED_PIN_NAME);
+            // Step 2. Configure as an output.
+            mLedGpio.setDirection(Gpio.DIRECTION_OUT_INITIALLY_LOW);
+
+            // Step 4. Repeat using a handler.
+            //mHandler.post(mBlinkRunnable);
+            timer = new Timer();
+            TimerTask task = new TimerTask() {
+                @Override
+                public void run() {
+                    try {
+                        mLedGpio.setValue(!mLedGpio.getValue());
+
+
+                        if(mLedGpio.getValue() == true)
+                        {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    txtConsole.setText("LED is ON");
+                                }
+                            });
+
+                        }
+                        else
+                        {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    txtConsole.setText("LED is OFF");
+                                }
+                            });
+                        }
+                    }catch (Throwable t){
+
+                    }
+                }
+            };
+            timer.schedule(task,2000,3000);
+
+
+        } catch (IOException e) {
+            Log.e(TAG, "Error on PeripheralIO API", e);
+        }
+
+        String networkSSID = "NhanNhung";
+        String networkPasskey = "nhannhung2607";
+
+        WifiConfiguration wifiConfiguration = new WifiConfiguration();
+        wifiConfiguration.SSID = "\"" + networkSSID + "\"";
+        wifiConfiguration.preSharedKey = "\"" + networkPasskey + "\"";
+
+        WifiManager manager1 = (WifiManager) getSystemService(WIFI_SERVICE);
+        manager1.addNetwork(wifiConfiguration);
+        //manager1.disconnect();
+        manager1.enableNetwork(wifiConfiguration.networkId,true);
+        manager1.reconnect();
+
+
+        VolleyRemoteApiClient.createInstance(this);
+
+        Map<String, String> headerGA = new HashMap<>();
+
+        headerGA.put("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36");
+        headerGA.put("Content-Type", "application/x-www-form-urlencoded");
+        String Url = "http://npnlab.chipfc.com/api/youtubeparservideo?id0=a6f8e2a2c8c5c48d&id1=e0aab8011b11&id2=545aa68e6192&id3=487a4cfba41995d56c6c&id4=75&id5=UBCTube_30xx";
+        String url2 = "https://npnlabhdo.chipfc.com/hdolink/setLink?url=KSD&m3u8=KSDm3u82";
+        //test api request
+        VolleyRemoteApiClient.getInstance().get(url2, headerGA, new ApiResponseListener<String>() {
+            @Override
+            public void onSuccess(String response) {
+                Log.d(TAG, "Receive data from server");
+                txtConsole.setText("OK");
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.d(TAG, "Error data from server");
+            }
+        });
+
+        String[] str ={"adb shell","am startservice \\\n" +
+                "-n com.google.wifisetup/.WifiSetupService \\\n" +
+                "-a WifiSetupService.Connect \\\n" +
+                "-e ssid NhanNhung \\\n" +
+                "-e passphrase nhannhung2607"};
+
+//        try {
+//            Process ps = Runtime.getRuntime().exec("adb shell");
+//            try {
+//                ps.waitFor();
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//        } catch (Throwable t) {
+//            Log.d(TAG,t.getMessage());
+//        }
+
+
+        btnSetting.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+//                String temperature = txtTemperature.getText().toString();
+//                String pressure = txtPressure.getText().toString();
+//                String url = "https://npnlabhdo.chipfc.com/hdolink/setLink?url=" + temperature +  "&m3u8=" + pressure;
+//                Map<String, String> header = new HashMap<>();
+//
+//                header.put("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36");
+//
+//                VolleyRemoteApiClient.getInstance().get(url, header, new ApiResponseListener<String>() {
+//                    @Override
+//                    public void onSuccess(String response) {
+//                        Log.d(TAG, "Receive data from server");
+//                    }
+//
+//                    @Override
+//                    public void onError(String error) {
+//                        Log.d(TAG, "Error data from server");
+//                    }
+//                });
+
+//                Intent LaunchIntent = context.getPackageManager()
+//                        .getLaunchIntentForPackage("com.google.wifisetup");
+//                context.startActivity( LaunchIntent );
+
+
+
+            }
+        });
+    }
+
+    private List getAllApplications(Context context, boolean includeSystemApps) {
+        PackageManager packageManager = context.getPackageManager();
+        List packages = packageManager.getInstalledPackages(0);
+
+        List installedApps = new ArrayList<>();
+
+        for (int i = 0;i<packages.size();i++) {
+            PackageInfo pkgInfo = (PackageInfo) packages.get(i);
+            if (pkgInfo.versionName == null) {
+                continue;
+            }
+
+
+            App newApp = new App();
+            boolean isSystemApp = ((pkgInfo.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0);
+
+            newApp.setPackageName(pkgInfo.packageName);
+            newApp.setName(pkgInfo.applicationInfo.loadLabel(packageManager).toString());
+            newApp.setIcon(pkgInfo.applicationInfo.loadIcon(packageManager));
+
+            if (includeSystemApps || !isSystemApp) {
+                installedApps.add(newApp);
+            }
+        }
+
+        return installedApps;
+    }
+}
+
+class App {
+    private String packageName;
+    private String name;
+    private Drawable icon;
+
+    String getPackageName() {
+        return packageName;
+    }
+
+    void setPackageName(String packageName) {
+        this.packageName = packageName;
+    }
+
+    String getName() {
+        return name;
+    }
+
+    void setName(String name) {
+        this.name = name;
+    }
+
+    public Drawable getIcon() {
+        return icon;
+    }
+
+    public void setIcon(Drawable icon) {
+        this.icon = icon;
+    }
+}
