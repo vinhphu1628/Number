@@ -91,7 +91,7 @@
                 android:layout_weight="1"
                 android:ellipsize="start"
                 android:gravity="center_horizontal"
-                android:hint="Enter 8 number"
+                android:hint="Enter 5 number"
                 android:inputType="numberPassword"
                 android:singleLine="true"
                 android:textStyle="bold" />

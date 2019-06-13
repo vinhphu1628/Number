@@ -158,7 +158,7 @@ public class MainActivity extends Activity implements View.OnClickListener, NPNH
 
     private boolean isAllowProcess = true;
 
-    private String link = "http://192.168.0.188:3000/api/android/android?code=";
+    private String link = "http://f67bda42.ngrok.io/api/android/android?code=";
 
     long lastDown, lastDuration;
     boolean isButtonDeletePress = false;
@@ -188,70 +188,6 @@ public class MainActivity extends Activity implements View.OnClickListener, NPNH
         }
     }
 
-//    private void visibleAllControls(boolean isVisible){
-//        if(isVisible == false) {
-//            btnNum0.setVisibility(View.GONE);
-//            btnNum1.setVisibility(View.GONE);
-//            btnNum2.setVisibility(View.GONE);
-//            btnNum3.setVisibility(View.GONE);
-//            btnNum4.setVisibility(View.GONE);
-//            btnNum5.setVisibility(View.GONE);
-//            btnNum6.setVisibility(View.GONE);
-//            btnNum7.setVisibility(View.GONE);
-//            btnNum8.setVisibility(View.GONE);
-//            btnNum9.setVisibility(View.GONE);
-//            btnDelete.setVisibility(View.GONE);
-//            btnEnter.setVisibility(View.GONE);
-//            imgWifi.setVisibility(View.GONE);
-////            imgLogo.setVisibility(View.GONE);
-////            txtClock.setVisibility(View.GONE);
-//            txtPinCode.setVisibility(View.GONE);
-//            txtIPAddress.setVisibility(View.GONE);
-//
-//            btnClear.setVisibility(View.GONE);
-//            btnShow.setVisibility(View.GONE);
-//            time.setVisibility(View.GONE);
-//            date.setVisibility(View.GONE);
-//            back.setVisibility(View.GONE);
-//
-//            myVideoView.setVisibility(View.VISIBLE);
-//            myVideoView.setVideoURI(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.kitkat));
-//
-//            //myVideoView.setVideoURI(Uri.parse("https://hjyjrvmlsk.vcdn.com.vn/hls/elgfjdh/index.m3u8"));
-//
-//            myVideoView.start();
-//
-//        }else {
-//            btnNum0.setVisibility(View.VISIBLE);
-//            btnNum1.setVisibility(View.VISIBLE);
-//            btnNum2.setVisibility(View.VISIBLE);
-//            btnNum3.setVisibility(View.VISIBLE);
-//            btnNum4.setVisibility(View.VISIBLE);
-//            btnNum5.setVisibility(View.VISIBLE);
-//            btnNum6.setVisibility(View.VISIBLE);
-//            btnNum7.setVisibility(View.VISIBLE);
-//            btnNum8.setVisibility(View.VISIBLE);
-//            btnNum9.setVisibility(View.VISIBLE);
-//            btnDelete.setVisibility(View.VISIBLE);
-//            btnEnter.setVisibility(View.VISIBLE);
-//            imgWifi.setVisibility(View.VISIBLE);
-////            imgLogo.setVisibility(View.VISIBLE);
-////            txtClock.setVisibility(View.VISIBLE);
-//            txtPinCode.setVisibility(View.VISIBLE);
-//            txtIPAddress.setVisibility(View.VISIBLE);
-//
-//            btnClear.setVisibility(View.VISIBLE);
-//            btnShow.setVisibility(View.VISIBLE);
-//            time.setVisibility(View.VISIBLE);
-//            date.setVisibility(View.VISIBLE);
-//            back.setVisibility(View.VISIBLE);
-//
-//            myVideoView.setVisibility(View.GONE);
-//            myVideoView.stopPlayback();
-//
-//        }
-//    }
-
     public void connectNetwork(String ssid, String pass){
         String txtUserName = ssid;
         String txtPassWord = pass;
@@ -279,9 +215,7 @@ public class MainActivity extends Activity implements View.OnClickListener, NPNH
         setContentView(R.layout.activity_main);
 
         imgWifi = findViewById(R.id.imgWifi);
-//        imgLogo = findViewById(R.id.imgLogo);
 
-//        txtClock = findViewById(R.id.txtClock);
         txtPinCode = findViewById(R.id.txtPinCode);
         txtIPAddress = findViewById(R.id.txtIPAddress);
 
@@ -305,31 +239,6 @@ public class MainActivity extends Activity implements View.OnClickListener, NPNH
         back = findViewById(R.id.back);
         initTimeAndWifi.post(initTimeAndWifiRunnable);
         mIdle.post(mIdleRunnable);
-
-//        myVideoView = findViewById(R.id.myVideoView);
-//
-//        myVideoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-//            @Override
-//            public void onCompletion(MediaPlayer mediaPlayer) {
-//                myVideoView.start();
-//            }
-//        });
-//
-//        myVideoView.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                visibleAllControls(true);
-//                txtPinCode.setText("");
-//            }
-//        });
-//
-//        myVideoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-//            @Override
-//            public void onPrepared(MediaPlayer mediaPlayer) {
-//                mediaPlayer.setVolume(100f, 100f);
-//            }
-//        });
-
 
         mHomeViewModel = new NPNHomeViewModel();
         mHomeViewModel.attach(this, this);
@@ -503,11 +412,13 @@ public class MainActivity extends Activity implements View.OnClickListener, NPNH
         if(message.equals("0")) {
             Log.d(TAG, "Wrong code");
             Toast.makeText(context, "INVALID CODE!", Toast.LENGTH_SHORT).show();
+            String speakWords = "Mã nhập không hợp lệ";
+            niceTTS.speak(speakWords, TextToSpeech.QUEUE_FLUSH, null);
         }
         else {
             writeUartData(message);
             String speakWords = "Xin vui lòng đến ô số " + message;
-//        niceTTS.speak(speakWords, TextToSpeech.QUEUE_FLUSH, null);
+            niceTTS.speak(speakWords, TextToSpeech.QUEUE_FLUSH, null);
             door_state = DOOR_STATE.WAIT_DOOR_OPEN;
             door_timer = TIME_OUT_DOOR_OPEN;
             currentDoor = message;
@@ -526,6 +437,8 @@ public class MainActivity extends Activity implements View.OnClickListener, NPNH
         //txtConsole.setText("Request server is fail");
         Log.d(TAG, "Request server is fail");
         Toast.makeText(context, "CAN'T REACH THE SERVER!!", Toast.LENGTH_SHORT).show();
+        String speakWords = "Không có kết nối đến máy chủ";
+        niceTTS.speak(speakWords, TextToSpeech.QUEUE_FLUSH, null);
     }
 
     @Override
@@ -534,25 +447,25 @@ public class MainActivity extends Activity implements View.OnClickListener, NPNH
         if(view == btnEnter)
         {
             Log.d(TAG, txtPinCode.getText().toString());
-//            if(txtPinCode.getText().toString().length() < 8){
-//                talkToMe("Mã nhập vào không đủ 8 kí tự");
-//            }
-//            else if(txtPinCode.getText().toString().length() > 8){
-//                talkToMe("Mã nhập vào nhiều hơn 8 kí tự");
-//            }
-//            else{
+            if(txtPinCode.getText().toString().length() < 5){
+                talkToMe("Mã nhập vào không đủ 5 kí tự");
+            }
+            else if(txtPinCode.getText().toString().length() > 5){
+                talkToMe("Mã nhập vào nhiều hơn 5 kí tự");
+            }
+            else{
                 String url = link + txtPinCode.getText() ;
                 mHomeViewModel.updateToServer(url);
                 txtPinCode.setText("");
                 door_state = DOOR_STATE.DOOR_CLOSED;
-            //}
+            }
             return;
         }
 
 
-        //remove the first character is the length is 8
-        if (txtPinCode.getText().length() > 7) {
-            txtPinCode.setText(txtPinCode.getText().subSequence(1, 8));
+        //remove the first character is the length is 5
+        if (txtPinCode.getText().length() > 4) {
+            txtPinCode.setText(txtPinCode.getText().subSequence(1, 5));
         }
 
         //add one more character
@@ -1009,7 +922,7 @@ public class MainActivity extends Activity implements View.OnClickListener, NPNH
             } else txtIPAddress.setText("No connection");
 
             SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
-            sdf.setTimeZone(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
+            sdf.setTimeZone(TimeZone.getTimeZone("GMT+7"));
             SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
             date.setText(format.format(new Date()));
             format = new SimpleDateFormat("hh:mm");
